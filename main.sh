@@ -13,16 +13,27 @@ while getopts "H:P:u:p:" Input; do
 done
 
 # ${PWD##*/}
-SlaveReplStatus=`${PWD}/check_mysql_slavestatus.sh -H ${host} -P ${port} -u${user} -p${password}`
+err_cnt=0
+while :
+do 
+    SlaveReplStatus=`${PWD}/check_mysql_slavestatus.sh -H ${host} -P ${port} -u${user} -p${password}`
+    
+    if [ "${SlaveReplStatus:0:8}" = "CRITICAL" ]; then
+        echo ${err_cnt}
+        echo ${SlaveReplStatus}
+        err_cnt=$((err_cnt+1))
+    else
+        echo ${SlaveReplStatus}
+    fi
 
-if [ "${SlaveReplStatus:0:8}" = "CRITICAL" ]; then
-  echo ${SlaveReplStatus}
-  echo shutdown
-  ShutdownResult=`mysqladmin -h ${host} -P ${port} -u ${user} --password=${password} -v shutdown`
-  echo ${ShutdownResult}
-  exit 1;
-else
-  echo ${SlaveReplStatus}
-fi
+    if [[ $err_cnt > 5 ]]; then
+        echo shutdown
+        ShutdownResult=`mysqladmin -h ${host} -P ${port} -u ${user} --password=${password} -v shutdown`
+        echo ${ShutdownResult}
+        exit 1;
+    fi
 
+    sleep 5
+
+done
 
