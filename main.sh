@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 while getopts "H:P:u:p:" Input; do
 	case ${Input} in
 	H)	host=${OPTARG};;
@@ -16,7 +18,7 @@ done
 err_cnt=0
 while :
 do 
-    SlaveReplStatus=`${PWD}/check_mysql_slavestatus.sh -H ${host} -P ${port} -u${user} -p${password}`
+    SlaveReplStatus=`${DIR}/check_mysql_slavestatus.sh -H ${host} -P ${port} -u${user} -p${password}`
     
     if [ "${SlaveReplStatus:0:8}" = "CRITICAL" ]; then
         echo ${err_cnt}
